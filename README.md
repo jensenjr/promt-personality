@@ -6,12 +6,12 @@ Ett enkelt, helt webbläsarbaserat quiz som hjälper en användare att bygga en 
 
 Det här är en helt statisk sida. Den:
 
-- gör **inga** nätverksanrop,
-- använder **ingen** lagring (varken localStorage, cookies eller liknande),
-- laddar **inga** externa resurser (ingen CDN, inga typsnitt utifrån, ingen analytics),
-- sparar **aldrig** användarens svar någonstans.
+- gör **inga** nätverksanrop — typsnittet Figtree är inbakat direkt i filen, inga externa resurser laddas,
+- **sparar aldrig användarens svar** (varken localStorage, cookies, server eller liknande),
+- laddar **inga** externa resurser (ingen CDN, ingen analytics, inga externa typsnitt),
+- är **helt körbar offline** efter att sidan laddats.
 
-Allt körs lokalt i besökarens webbläsare. Svaren finns bara i minnet under tiden quizet är öppet och försvinner direkt vid omladdning. Det enda som någonsin lämnar enheten är den färdiga prompten — och bara när användaren själv klickar på "Kopiera prompt". Den här garantin förklaras också för användaren direkt i gränssnittet (på start- och slutsidan).
+Det enda som sparas lokalt är **temapreferensen** (ljust/mörkt läge) i `localStorage` — enbart ett enda ord, aldrig något du skrivit. Svaren finns bara i minnet under tiden quizet är öppet och försvinner direkt vid omladdning. Det enda som någonsin lämnar enheten är den färdiga prompten — och bara när användaren själv klickar på "Kopiera prompt". Den här garantin förklaras också för användaren direkt i gränssnittet (på start- och slutsidan).
 
 ## Deploya på GitHub Pages
 

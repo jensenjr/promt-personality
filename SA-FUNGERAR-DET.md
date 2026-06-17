@@ -237,12 +237,11 @@ Lägg märke till att det inte finns någon `## Kontext om mig` eller
 | Den färdiga prompten | Nej | Skapas på skärmen; lämnar bara enheten om du själv kopierar |
 | Ditt val av ljust/mörkt tema | Ja | `localStorage` i din webbläsare (bara temat, inget du skrivit) |
 
-### En ärlig not om externa anrop
+### Externa anrop
 
-Sidan hämtar i nuläget typsnittet **Figtree** från Google Fonts när den laddas.
-Det är ett externt anrop (din webbläsare kontaktar Google) — men det skickar
-**inga** av dina svar, bara en vanlig begäran om en typsnittsfil. Inget annat
-externt laddas, och ingen analytics eller spårning finns.
+Inga. Typsnittet Figtree är inbakat direkt i filen som data — inga externa
+resurser laddas, ingen CDN, ingen analytics. Sidan fungerar offline efter att
+den laddats en gång.
 
 ---
 
@@ -253,3 +252,93 @@ externt laddas, och ingen analytics eller spårning finns.
   "Kopiera prompt".
 - Det enda som lagras lokalt är ditt **temaval**, aldrig något du skrivit.
 - Laddar du om sidan är alla svar borta.
+- **Inga externa anrop** — inte ens för typsnittet.
+
+---
+
+## 8. Så lägger du in prompten — steg för steg
+
+Du har nu din färdiga prompt. Så här lägger du in den i de vanligaste AI-tjänsterna
+så att den gäller *permanent* — du behöver inte klistra in den varje gång.
+
+---
+
+### Claude (claude.ai)
+
+Det enklaste alternativet: spara prompten som en **"Project instruction"** i ett
+projekt, så gäller den automatiskt i varje ny chatt inom det projektet.
+
+```text
+1.  Gå till  claude.ai  och logga in.
+2.  Klicka på  "Projects"  i vänstermenyn.
+3.  Skapa ett nytt projekt (knappen  "+ New project" / "+ Nytt projekt").
+4.  Inne i projektet, klicka  "Project instructions"  eller  "Edit instructions".
+5.  Klistra in din prompt i textrutan.
+6.  Klicka  "Save".
+```
+
+Varje ny konversation du startar *inuti det projektet* kommer automatiskt att
+använda din profil — ingen manuell inklistring krävs.
+
+> **Enkelt alternativ:** Klistra bara in prompten som ditt *allra första
+> meddelande* i en ny chatt, innan du ställer din egentliga fråga.
+
+---
+
+### ChatGPT (chatgpt.com)
+
+ChatGPT har en funktion som heter **Custom instructions** — den lägger till din
+profil i *alla* dina chattar automatiskt.
+
+```text
+1.  Gå till  chatgpt.com  och logga in.
+2.  Klicka på ditt  profilikon  uppe till höger (eller nere till vänster
+    beroende på skärm).
+3.  Välj  "Customize ChatGPT"  i menyn.
+4.  Du ser två textrutor:
+      • "What would you like ChatGPT to know about you?"
+        → Klistra in din prompt här.
+      • "How would you like ChatGPT to respond?"
+        → Kan lämnas tom, eller lägg till extra önskemål.
+5.  Klicka  "Save".
+```
+
+Nu gäller din profil i alla nya chattar — gamla chattar påverkas inte.
+
+> **Enkelt alternativ:** Klistra in prompten som första meddelande i valfri chatt.
+
+---
+
+### Microsoft Copilot (copilot.microsoft.com eller i Microsoft 365)
+
+Copilot saknar ett permanent "system instructions"-läge för vanliga användare,
+men du kan alltid klistra in din prompt som instruktion i en chatt.
+
+**I webbversionen (copilot.microsoft.com):**
+
+```text
+1.  Gå till  copilot.microsoft.com  och logga in.
+2.  Starta en ny konversation.
+3.  Klistra in din prompt som ditt första meddelande och tryck  Enter.
+4.  Copilot bekräftar att den tagit emot kontexten — fortsätt sedan
+    med dina vanliga frågor i samma konversation.
+```
+
+**I Microsoft 365 (Word, Teams, Outlook …):**
+
+```text
+• Inget permanent inställningsläge finns.
+• Klistra in prompten i början av varje ny Copilot-session
+  (t.ex. i "Copilot Chat" i Teams) för att sätta kontexten.
+```
+
+> **Tips:** Spara prompten i ett anteckningsdokument (OneNote, Anteckningar)
+> så kan du snabbt kopiera och klistra in den när du behöver.
+
+---
+
+### Andra AI-tjänster (Gemini, Mistral, Perplexity …)
+
+Klistra in prompten som ditt **första meddelande** i en ny chatt. De flesta
+moderna AI-modeller förstår direkt att det rör sig om en instruktion och
+anpassar sig efter den för resten av konversationen.
