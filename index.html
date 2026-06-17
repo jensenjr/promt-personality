@@ -4,225 +4,485 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bygg din AI-profil</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
 <style>
+/* ── Colour tokens: light ── */
 :root{
   --bg:#FFF9F0;
   --card:#FFFFFF;
   --bord:#F0DCC2;
   --acc:#E8590C;
   --acc2:#F59F00;
-  --adim:rgba(232,89,12,0.08);
-  --abord:rgba(232,89,12,0.35);
+  --adim:rgba(232,89,12,.08);
+  --abord:rgba(232,89,12,.35);
   --txt:#3A2A1A;
   --muted:#9A7B5A;
   --pill:#FFFDF8;
+  --shadow:rgba(58,42,26,.06);
+  --code-bg:#1E1208;
+  --code-txt:#E8C99A;
 }
+/* ── OS dark preference ── */
+@media(prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#141008;
+    --card:#1E1508;
+    --bord:#3A2A14;
+    --acc:#F06A1A;
+    --acc2:#F59F00;
+    --adim:rgba(232,89,12,.14);
+    --abord:rgba(240,106,26,.45);
+    --txt:#EDD9C0;
+    --muted:#7A6550;
+    --pill:#1A1208;
+    --shadow:rgba(0,0,0,.4);
+    --code-bg:#0E0A04;
+    --code-txt:#D9B882;
+  }
+}
+/* ── Manual override: force dark ── */
+[data-theme="dark"]{
+  --bg:#141008;
+  --card:#1E1508;
+  --bord:#3A2A14;
+  --acc:#F06A1A;
+  --acc2:#F59F00;
+  --adim:rgba(232,89,12,.14);
+  --abord:rgba(240,106,26,.45);
+  --txt:#EDD9C0;
+  --muted:#7A6550;
+  --pill:#1A1208;
+  --shadow:rgba(0,0,0,.4);
+  --code-bg:#0E0A04;
+  --code-txt:#D9B882;
+}
+/* ── Manual override: force light ── */
+[data-theme="light"]{
+  --bg:#FFF9F0;
+  --card:#FFFFFF;
+  --bord:#F0DCC2;
+  --acc:#E8590C;
+  --acc2:#F59F00;
+  --adim:rgba(232,89,12,.08);
+  --abord:rgba(232,89,12,.35);
+  --txt:#3A2A1A;
+  --muted:#9A7B5A;
+  --pill:#FFFDF8;
+  --shadow:rgba(58,42,26,.06);
+  --code-bg:#1E1208;
+  --code-txt:#E8C99A;
+}
+
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
 body{
   min-height:100vh;
   background:var(--bg);
   color:var(--txt);
-  font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  font-family:'Figtree',system-ui,-apple-system,sans-serif;
   padding:0 16px;
+  transition:background .2s,color .2s;
 }
+
+/* ── Theme toggle ── */
+.theme-btn{
+  position:fixed;top:12px;right:12px;z-index:200;
+  background:var(--card);border:1.5px solid var(--bord);
+  border-radius:50%;width:38px;height:38px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:17px;transition:border-color .14s,background .14s;
+  box-shadow:0 1px 6px var(--shadow);
+}
+.theme-btn:hover{border-color:var(--acc);background:var(--pill)}
+
+/* ── Progress ── */
+.progress-track{position:fixed;top:0;left:0;right:0;height:3px;background:var(--bord);z-index:99}
+.progress-fill{height:100%;background:linear-gradient(90deg,#F59F00,#E8590C);transition:width .5s cubic-bezier(.4,0,.2,1)}
+
+/* ── Layout ── */
 @keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 .fade{animation:up .28s ease forwards}
-.opt{cursor:pointer;border-radius:10px;border:1.5px solid var(--bord);background:var(--pill);color:var(--txt);padding:11px 16px;font-size:14px;transition:all .14s;text-align:left;line-height:1.45;font-family:inherit;display:block;width:100%;margin-bottom:8px}
+.wrap{max-width:600px;margin:0 auto;padding-bottom:100px}
+
+/* ── Buttons: single-choice ── */
+.opt{
+  cursor:pointer;border-radius:10px;border:1.5px solid var(--bord);
+  background:var(--pill);color:var(--txt);padding:11px 16px;
+  font-size:14.5px;font-family:inherit;font-weight:500;
+  transition:border-color .12s,background .12s,transform .08s;
+  text-align:left;line-height:1.45;display:block;width:100%;margin-bottom:8px;
+}
 .opt:hover{border-color:rgba(232,89,12,.5);background:#FFF4E6}
-.opt.on{border-color:var(--acc);background:rgba(245,159,0,.14)}
-.tag{cursor:pointer;border-radius:8px;border:1.5px solid var(--bord);background:var(--pill);color:var(--txt);padding:8px 13px;font-size:13px;transition:all .14s;font-family:inherit;line-height:1.3;display:inline-block;margin:0 8px 8px 0}
-.tag:hover{border-color:rgba(232,89,12,.5);background:#FFF4E6}
-.tag.on{border-color:var(--acc);background:rgba(245,159,0,.14)}
-textarea{width:100%;background:var(--pill);border:1.5px solid var(--bord);border-radius:10px;color:var(--txt);font-size:15px;padding:14px 16px;outline:none;font-family:inherit;resize:vertical;min-height:82px;line-height:1.55;transition:border-color .14s}
-textarea:focus{border-color:var(--acc)}
-textarea::placeholder{color:var(--muted)}
-.other-input{width:100%;margin-top:14px;background:var(--pill);border:1.5px solid var(--bord);border-radius:10px;color:var(--txt);font-size:14px;padding:11px 14px;outline:none;font-family:inherit;transition:border-color .14s}
-.other-input:focus{border-color:var(--acc)}
-.other-input::placeholder{color:var(--muted)}
-.next{background:var(--acc);color:#fff;font-weight:700;border:none;border-radius:10px;padding:12px 22px;font-size:15px;cursor:pointer;font-family:inherit;transition:opacity .14s,transform .1s;flex:1}
+[data-theme="dark"] .opt:hover,[data-theme="dark"] .opt:hover{background:#251A0A}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .opt:hover{background:#251A0A}}
+.opt.on{border-color:var(--acc);background:var(--adim);font-weight:600}
+.opt.on::before{content:"✓  ";color:var(--acc);font-weight:700}
+
+/* ── Buttons: multi-select tags ── */
+.tag{
+  cursor:pointer;border-radius:8px;border:1.5px solid var(--bord);
+  background:var(--pill);color:var(--txt);padding:8px 14px;
+  font-size:13.5px;font-family:inherit;font-weight:500;
+  transition:border-color .12s,background .12s;
+  line-height:1.3;display:inline-block;margin:0 8px 8px 0;
+}
+.tag:hover{border-color:rgba(232,89,12,.5)}
+.tag.on{border-color:var(--acc);background:var(--adim);font-weight:600}
+.tag.on::before{content:"✓  ";color:var(--acc);font-weight:700}
+
+/* ── Text inputs ── */
+textarea,.other-input,.edit-ta{
+  width:100%;background:var(--pill);border:1.5px solid var(--bord);
+  border-radius:10px;color:var(--txt);font-family:inherit;
+  outline:none;transition:border-color .14s;
+}
+textarea{font-size:15px;padding:14px 16px;resize:vertical;min-height:82px;line-height:1.6}
+.other-input{font-size:14px;padding:11px 14px;margin-top:12px}
+.edit-ta{font-size:14px;padding:12px 14px;resize:vertical;min-height:70px;line-height:1.55}
+textarea:focus,.other-input:focus,.edit-ta:focus{border-color:var(--acc)}
+textarea::placeholder,.other-input::placeholder,.edit-ta::placeholder{color:var(--muted)}
+
+/* ── Nav buttons ── */
+.next{
+  background:var(--acc);color:#fff;font-weight:700;border:none;
+  border-radius:10px;padding:12px 22px;font-size:15px;cursor:pointer;
+  font-family:inherit;transition:opacity .14s,transform .1s;flex:1;
+}
 .next:hover{opacity:.88;transform:translateY(-1px)}
 .next:active{transform:translateY(0)}
 .next:disabled{opacity:.32;cursor:not-allowed;transform:none!important}
-.back{background:transparent;color:var(--muted);border:1.5px solid var(--bord);border-radius:10px;padding:12px 16px;font-size:15px;cursor:pointer;font-family:inherit;transition:all .14s}
+.back{
+  background:transparent;color:var(--muted);border:1.5px solid var(--bord);
+  border-radius:10px;padding:12px 16px;font-size:15px;cursor:pointer;
+  font-family:inherit;transition:all .14s;
+}
 .back:hover{color:var(--txt);border-color:#D9A96E}
-.pbox{background:var(--pill);border:1.5px solid var(--bord);border-radius:12px;padding:20px;font-family:'Menlo','Monaco',monospace;font-size:12px;color:#6B5640;white-space:pre-wrap;max-height:340px;overflow-y:auto;line-height:1.8;word-break:break-word}
-.cpbtn{background:var(--acc);border:1.5px solid var(--acc);color:#fff;border-radius:9px;padding:11px 22px;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;transition:all .14s}
+.skip{
+  background:none;border:none;color:var(--muted);cursor:pointer;
+  font-size:13px;margin-top:14px;text-decoration:underline;
+  padding:0;font-family:inherit;display:block;
+}
+.navrow{display:flex;gap:10px;margin-top:28px}
+
+/* ── Prompt output ── */
+.pbox{
+  background:var(--code-bg);border:1.5px solid var(--bord);
+  border-radius:12px;padding:20px;
+  font-family:'Menlo','Monaco',monospace;font-size:12px;
+  color:var(--code-txt);white-space:pre-wrap;
+  max-height:360px;overflow-y:auto;line-height:1.85;word-break:break-word;
+}
+.cpbtn{
+  background:var(--acc);border:1.5px solid var(--acc);color:#fff;
+  border-radius:9px;padding:11px 22px;font-weight:700;font-size:14px;
+  cursor:pointer;font-family:inherit;transition:all .14s;
+}
 .cpbtn:hover{opacity:.88}
 .cpbtn.ok{background:var(--acc2);border-color:var(--acc2)}
-::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:var(--bord);border-radius:3px}
-.wrap{max-width:600px;margin:0 auto;padding-bottom:80px}
-.progress-track{position:fixed;top:0;left:0;right:0;height:3px;background:var(--bord);z-index:99}
-.progress-fill{height:100%;background:linear-gradient(90deg,#F59F00,#E8590C);transition:width .5s cubic-bezier(.4,0,.2,1)}
-.badge{display:inline-block;background:var(--adim);border:1px solid var(--abord);border-radius:20px;padding:5px 13px;font-size:11px;color:var(--acc);font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:28px}
+
+/* ── Misc components ── */
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-thumb{background:var(--bord);border-radius:3px}
+.badge{
+  display:inline-block;background:var(--adim);border:1px solid var(--abord);
+  border-radius:20px;padding:5px 13px;font-size:11px;color:var(--acc);
+  font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:28px;
+}
 h1{font-size:clamp(30px,7vw,46px);font-weight:800;line-height:1.1;margin:0 0 16px;letter-spacing:-.025em}
-.stats{display:grid;grid-template-columns:1fr 1fr 1fr;background:var(--card);border:1px solid var(--bord);border-radius:12px;padding:20px 0;margin-bottom:36px;text-align:center}
+.stats{
+  display:grid;grid-template-columns:1fr 1fr 1fr;
+  background:var(--card);border:1px solid var(--bord);
+  border-radius:12px;padding:20px 0;margin-bottom:36px;text-align:center;
+}
 .stat{padding:0 16px}
 .stat-val{font-size:22px;font-weight:700}
 .stat-label{font-size:12px;color:var(--muted);margin-top:3px}
-.cat-pill{border-radius:20px;padding:4px 11px;font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;border:1px solid}
-.qhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:36px}
+.cat-pill{
+  border-radius:20px;padding:4px 11px;font-size:11px;font-weight:700;
+  letter-spacing:.07em;text-transform:uppercase;border:1px solid;
+}
+.qhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px}
 .counter{color:var(--muted);font-size:13px}
-.qtitle{font-size:clamp(18px,3.8vw,24px);font-weight:700;line-height:1.3;margin-bottom:4px}
-.qsub{color:#B58A5E;font-size:13px;margin-bottom:28px;min-height:18px}
-.navrow{display:flex;gap:10px;margin-top:36px}
-.skip{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;margin-top:14px;text-decoration:underline;padding:0;font-family:inherit;display:block}
-.info-box{background:var(--card);border:1px solid var(--bord);border-radius:10px;padding:14px 18px;margin-bottom:20px;font-size:13px;color:var(--muted);line-height:1.6}
+.qtitle{font-size:clamp(20px,4vw,26px);font-weight:800;line-height:1.25;margin-bottom:4px;letter-spacing:-.02em}
+.qsub{color:var(--muted);font-size:13px;margin-bottom:24px;min-height:18px}
+.qlabel{font-size:13.5px;font-weight:700;color:var(--muted);margin:22px 0 10px;text-transform:uppercase;letter-spacing:.05em}
+.qlabel:first-of-type{margin-top:0}
+.hint{color:var(--muted);font-size:12px;margin-top:8px;line-height:1.5}
+.info-box{
+  background:var(--card);border:1px solid var(--bord);
+  border-radius:10px;padding:14px 18px;margin-bottom:20px;
+  font-size:13px;color:var(--muted);line-height:1.65;
+}
 .info-box strong{color:var(--txt)}
-.share-box{margin-top:28px;background:var(--card);border:1px solid var(--bord);border-radius:10px;padding:16px 20px;font-size:13px;color:var(--muted);line-height:1.65}
+.share-box{
+  margin-top:24px;background:var(--card);border:1px solid var(--bord);
+  border-radius:10px;padding:16px 20px;font-size:13px;color:var(--muted);line-height:1.65;
+}
 .share-box strong{color:var(--txt)}
-.privacy-note{margin-top:24px;background:var(--adim);border:1px solid var(--abord);border-radius:10px;padding:13px 16px;font-size:12.5px;color:#8A6A48;line-height:1.6;max-width:520px}
+.privacy-note{
+  margin-top:20px;background:var(--adim);border:1px solid var(--abord);
+  border-radius:10px;padding:13px 16px;font-size:12.5px;color:var(--muted);line-height:1.6;
+}
 .privacy-note strong{color:var(--acc)}
+/* ── Edit section ── */
+.edit-section{margin-top:28px}
+.edit-toggle{
+  background:var(--card);border:1.5px solid var(--bord);border-radius:10px;
+  padding:13px 18px;font-size:14px;font-weight:600;color:var(--txt);
+  cursor:pointer;font-family:inherit;width:100%;text-align:left;
+  display:flex;justify-content:space-between;align-items:center;
+  transition:border-color .14s;
+}
+.edit-toggle:hover{border-color:var(--acc)}
+.edit-toggle .arrow{transition:transform .2s;color:var(--muted)}
+.edit-toggle.open .arrow{transform:rotate(180deg)}
+.edit-rows{display:none;padding-top:4px}
+.edit-rows.open{display:block}
+.edit-row{
+  background:var(--card);border:1px solid var(--bord);border-radius:10px;
+  padding:14px 16px;margin-top:8px;
+}
+.edit-row-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.edit-row-q{font-size:12.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.edit-row-val{font-size:13.5px;color:var(--txt);line-height:1.5}
+.edit-btn{
+  background:none;border:1.5px solid var(--bord);border-radius:7px;
+  color:var(--muted);font-size:12px;padding:5px 11px;cursor:pointer;
+  font-family:inherit;white-space:nowrap;flex-shrink:0;font-weight:600;
+  transition:all .12s;
+}
+.edit-btn:hover{border-color:var(--acc);color:var(--acc)}
+.annat-wrap{display:none;margin-top:10px}
+.annat-wrap.show{display:block}
+.max-note{font-size:12px;color:var(--muted);margin-top:4px}
 </style>
 </head>
 <body>
 
-<div id="progress-track" class="progress-track" style="display:none;">
+<button class="theme-btn" id="theme-btn" onclick="cycleTheme()" title="Växla tema" aria-label="Växla mellan ljust och mörkt tema">☀️</button>
+
+<div id="progress-track" class="progress-track" style="display:none">
   <div id="progress-fill" class="progress-fill" style="width:0%"></div>
 </div>
 
 <div class="wrap" id="app"></div>
 
 <script>
-const QUESTIONS = [
+// ── Theme ──────────────────────────────────────────────────
+(function(){
+  const saved = localStorage.getItem("theme");
+  if (saved) document.documentElement.dataset.theme = saved;
+  updateThemeBtn(saved);
+})();
+
+function updateThemeBtn(t) {
+  const btn = document.getElementById("theme-btn");
+  if (!btn) return;
+  const isDark = t === "dark" || (!t && window.matchMedia("(prefers-color-scheme:dark)").matches);
+  btn.textContent = isDark ? "☀️" : "🌙";
+  btn.title = isDark ? "Byt till ljust läge" : "Byt till mörkt läge";
+}
+
+function cycleTheme(){
+  const cur = document.documentElement.dataset.theme;
+  const sysDark = window.matchMedia("(prefers-color-scheme:dark)").matches;
+  let next;
+  if (!cur) next = sysDark ? "light" : "dark";
+  else if (cur === "dark") next = "light";
+  else next = "dark";
+  document.documentElement.dataset.theme = next;
+  localStorage.setItem("theme", next);
+  updateThemeBtn(next);
+}
+
+// ── Pages ──────────────────────────────────────────────────
+const PAGES = [
   {
-    id: "name_role",
+    id: "om_dig",
     category: "Om dig",
-    question: "Vad heter du, och vad jobbar eller studerar du med?",
-    type: "text",
-    placeholder: "t.ex. Jag heter Maja, frilansande UX-designer i Stockholm",
-    hint: "Hjälper AI att tilltala dig korrekt och förstå din yrkesmässiga kontext.",
-    optional: false,
+    title: "Berätta om dig",
+    subtitle: null,
+    qs: [
+      {
+        id: "name_role", type: "text",
+        label: "Vad heter du, och vad jobbar eller studerar du med?",
+        placeholder: "t.ex. Jag heter Maja, frilansande UX-designer i Stockholm",
+        hint: "Hjälper AI att tilltala dig korrekt och förstå din yrkesmässiga kontext.",
+        optional: false,
+      },
+      {
+        id: "industry", type: "single",
+        label: "Vilken bransch eller vilket område jobbar du inom?",
+        options: ["Tech & mjukvara","Kreativt & design","Affärer & finans","Vård & vetenskap","Utbildning & forskning","Marknadsföring & media","Juridik & policy","Hantverk & drift","Student","Annat"],
+        hasAnnat: true,
+        optional: false,
+      },
+      {
+        id: "expertise", type: "single",
+        label: "Vad är din erfarenhet och expertis i din nuvarande roll?",
+        options: ["Ny i rollen — lär mig fortfarande grunderna","Mellannivå — har solida grunder","Van — djup kunskap inom mitt område","Expert — jag är specialist inom mitt fält"],
+        optional: false,
+      },
+    ]
   },
   {
-    id: "industry",
-    category: "Om dig",
-    question: "Vilken bransch eller område jobbar du inom?",
-    type: "single",
-    options: ["Tech & mjukvara","Kreativt & design","Affärer & finans","Vård & vetenskap","Utbildning & forskning","Marknadsföring & media","Juridik & policy","Hantverk & drift","Student","Annat / blandat"],
-    optional: false,
-  },
-  {
-    id: "expertise",
-    category: "Om dig",
-    question: "Hur skulle du beskriva din övergripande expertisnivå?",
-    type: "single",
-    options: ["Nybörjare — lär mig fortfarande grunderna","Mellannivå — solida grunder","Avancerad — djup kunskap inom mitt område","Expert — jag är specialist"],
-    optional: false,
-  },
-  {
-    id: "use_cases",
+    id: "use_cases_page",
     category: "Hur du använder AI",
-    question: "Vad använder du främst AI till? Välj alla som passar.",
-    type: "multi",
-    allowOther: true,
-    options: ["Skriva & redigera","Kodning & utveckling","Research & analys","Kreativa projekt","Affärsstrategi","Lära mig nya ämnen","Brainstorming & idéer","Data & kalkylblad","Kund- / klientarbete","Personlig planering"],
-    optional: false,
+    title: "Vad använder du AI till?",
+    subtitle: "Välj alla som passar.",
+    qs: [
+      {
+        id: "use_cases", type: "multi",
+        allowOther: true,
+        options: ["Skriva & redigera","Kodning & utveckling","Research & analys","Kreativa projekt","Affärsstrategi","Lära mig nya ämnen","Brainstorming & idéer","Data & kalkylblad","Kund- / klientarbete","Personlig planering"],
+        optional: false,
+      }
+    ]
   },
   {
-    id: "response_length",
+    id: "kommunikation",
     category: "Kommunikationsstil",
-    question: "Hur långa bör AI-svar vara?",
-    type: "single",
-    options: ["Kort & koncist — kom till saken snabbt","Balanserat — kontext utan överbelastning","Utförligt — jag vill ha fullständiga förklaringar","Det beror på uppgiften"],
-    optional: false,
+    title: "Hur vill du kommunicera?",
+    subtitle: null,
+    qs: [
+      {
+        id: "response_length", type: "single",
+        label: "Hur långa bör svar vara?",
+        options: ["Kort & koncist — kom till saken snabbt","Balanserat — kontext utan överbelastning","Utförligt — jag vill ha fullständiga förklaringar","Det beror på uppgiften"],
+        optional: false,
+      },
+      {
+        id: "tone", type: "single",
+        label: "Vilken ton känns rätt för dig?",
+        options: ["Professionell & formell","Avslappnad & samtalston","Direkt & utan krusiduller","Varm & uppmuntrande","Professionell men vänlig"],
+        optional: false,
+      },
+      {
+        id: "format", type: "single",
+        label: "Hur vill du ha information formaterad?",
+        options: ["Punktlistor — jag skummar snabbt","Löpande text — jag läser ordentligt","Blandat — beror på ämnet","Rubriker & struktur — jag vill navigera","Tabeller & jämförelser när det passar"],
+        optional: false,
+      },
+    ]
   },
   {
-    id: "tone",
-    category: "Kommunikationsstil",
-    question: "Vilken ton känns rätt för dig?",
-    type: "single",
-    options: ["Professionell & formell","Avslappnad & samtalston","Direkt & utan krusiduller","Varm & uppmuntrande","Professionell men vänlig"],
-    optional: false,
-  },
-  {
-    id: "format",
-    category: "Kommunikationsstil",
-    question: "Hur vill du att information formateras?",
-    type: "single",
-    options: ["Punktlistor — jag skummar snabbt","Löpande text — jag läser ordentligt","Blandat — beror på ämnet","Rubriker & struktur — jag vill kunna navigera","Tabeller & jämförelser när det är användbart"],
-    optional: false,
-  },
-  {
-    id: "pushback",
+    id: "arbetsstil",
     category: "Arbetsstil",
-    question: "Ska AI ifrågasätta eller utmana dina idéer?",
-    type: "single",
-    options: ["Ja — jag vill ha ärlig kritik, även om det gör ont","Ibland — flagga bara verkliga problem","Sällan — bara vid stora problem","Nej — hjälp mig bara genomföra min vision"],
-    optional: false,
+    title: "Hur jobbar du bäst med AI?",
+    subtitle: null,
+    qs: [
+      {
+        id: "pushback", type: "single",
+        label: "Ska AI ifrågasätta eller utmana dina idéer?",
+        options: ["Ja — jag vill ha ärlig kritik, även om det gör ont","Ibland — flagga bara verkliga problem","Sällan — bara vid stora problem","Nej — hjälp mig bara genomföra min vision"],
+        optional: false,
+      },
+      {
+        id: "technicality", type: "single",
+        label: "Hur tekniska ska svaren vara?",
+        options: ["Vardagligt språk alltid","Lite teknisk jargong är okej","Teknisk djup är välkommet","Matcha nivån på min fråga"],
+        optional: false,
+      },
+    ]
   },
   {
-    id: "technicality",
-    category: "Arbetsstil",
-    question: "Hur tekniska ska svaren vara?",
-    type: "single",
-    options: ["Vardagligt språk alltid","Lite teknisk jargong är okej","Teknisk djup är välkommet","Matcha nivån på min fråga"],
-    optional: false,
-  },
-  {
-    id: "learning_style",
+    id: "tankesatt",
     category: "Hur du tänker",
-    question: "Hur tar du bäst till dig ny information?",
-    type: "single",
-    options: ["Teori först, sedan exempel","Konkret exempel först, sedan varför","Bara konkreta steg — hoppa över teorin","Analogier och jämförelser hjälper mig mest","Frågor som får mig att tänka igenom det själv"],
-    optional: false,
+    title: "Hur tar du bäst till dig ny information?",
+    subtitle: null,
+    qs: [
+      {
+        id: "learning_style", type: "single",
+        label: null,
+        options: ["Teori först, sedan exempel","Konkret exempel först, sedan varför","Bara konkreta steg — hoppa över teorin","Analogier och jämförelser hjälper mig mest","Frågor som får mig att tänka igenom det själv"],
+        optional: false,
+      }
+    ]
   },
   {
-    id: "topics",
+    id: "intressen",
     category: "Intressen & kontext",
-    question: "Vilka ämnen eller områden betyder mest för dig? Välj upp till 5.",
-    type: "multi",
-    maxSelect: 5,
-    allowOther: true,
-    options: ["Teknik & AI","Vetenskap & natur","Affärer & entreprenörskap","Konst & kultur","Hälsa & välmående","Personlig utveckling","Politik & samhälle","Filosofi & idéer","Sport & träning","Finans & investeringar","Resor & geografi","Mat & livsstil"],
-    optional: false,
+    title: "Vilka ämnen berör dig mest?",
+    subtitle: "Välj upp till 5.",
+    qs: [
+      {
+        id: "topics", type: "multi",
+        maxSelect: 5, allowOther: true,
+        options: ["Teknik & AI","Vetenskap & natur","Affärer & entreprenörskap","Konst & kultur","Hälsa & välmående","Personlig utveckling","Politik & samhälle","Filosofi & idéer","Sport & träning","Finans & investeringar","Resor & geografi","Mat & livsstil"],
+        optional: false,
+      }
+    ]
   },
   {
-    id: "goals",
-    category: "Intressen & kontext",
-    question: "Vilka är dina huvudmål just nu?",
-    type: "text",
-    placeholder: "t.ex. Starta en frilansverksamhet, lära mig Python, skriva en roman, bli befordrad",
-    hint: "Jobb, privatliv eller båda — AI skräddarsyr förslag utifrån dessa.",
-    optional: true,
+    id: "mal_bakgrund",
+    category: "Mål & bakgrund",
+    title: "Dina mål och kontext",
+    subtitle: "Båda är valfria — fyll i det som känns relevant.",
+    qs: [
+      {
+        id: "goals", type: "text",
+        label: "Vilka är dina huvudmål just nu?",
+        placeholder: "t.ex. Starta en frilansverksamhet, lära mig Python, skriva en roman, bli befordrad",
+        hint: "Jobb, privatliv eller båda — AI skräddarsyr förslag utifrån dessa.",
+        optional: true,
+      },
+      {
+        id: "background", type: "text",
+        label: "Något annat AI alltid bör ha i åtanke om dig?",
+        placeholder: "t.ex. Bosatt i Stockholm, sidoprojekt vid sidan av jobbet, föredrar europeiska exempel, förälder till två",
+        hint: "Ger kontext som gör svaren mer förankrade i din verkliga vardag.",
+        optional: true,
+      },
+    ]
   },
   {
-    id: "frustrations",
+    id: "frustrations_page",
     category: "Vad som ska undvikas",
-    question: "Vad stör dig mest i AI-svar? Välj alla som passar.",
-    type: "multi",
-    allowOther: true,
-    options: ["För långt och utfyllt","För vagt eller obestämt","Överdrivna reservationer & friskrivningar","För formellt eller robotaktigt","Svarar inte på det jag faktiskt frågade","Upprepar saker jag redan vet","Vågar inte ge en tydlig åsikt","Pratar nedlåtande till mig"],
-    optional: false,
+    title: "Vad stör dig i AI-svar?",
+    subtitle: "Välj alla som passar.",
+    qs: [
+      {
+        id: "frustrations", type: "multi", allowOther: true,
+        options: ["För långt och utfyllt","För vagt eller obestämt","Överdrivna reservationer & friskrivningar","För formellt eller robotaktigt","Svarar inte på det jag faktiskt frågade","Upprepar saker jag redan vet","Vågar inte ge en tydlig åsikt","Pratar nedlåtande till mig"],
+        optional: false,
+      }
+    ]
   },
   {
-    id: "background",
-    category: "Extra kontext",
-    question: "Något annat AI alltid bör ha i åtanke om dig?",
-    type: "text",
-    placeholder: "t.ex. Bosatt i Stockholm, sidoprojekt vid sidan av jobbet, föredrar europeiska exempel, förälder till två",
-    hint: "Valfritt — ger kontext som gör svaren mer förankrade i din verkliga vardag.",
-    optional: true,
+    id: "exempel_page",
+    category: "Stil & exempel",
+    title: "Klistra in ett exempel",
+    subtitle: "Valfritt — men extremt värdefullt.",
+    qs: [
+      {
+        id: "example", type: "text",
+        label: null,
+        placeholder: "t.ex. ett mejl du skrivit, ett stycke i din ton, eller ett AI-svar vars stil och längd kändes helt rätt",
+        hint: "Det enskilt mest värdefulla fältet. Ett konkret exempel låter AI matcha din stil istället för att gissa utifrån adjektiv.",
+        optional: true,
+      }
+    ]
   },
   {
-    id: "example",
-    category: "Exempel",
-    question: "Klistra in ett exempel på din egen text, eller ett AI-svar du tyckte var riktigt bra.",
-    type: "text",
-    placeholder: "t.ex. ett mejl du skrivit, ett stycke i din ton, eller ett AI-svar vars stil och längd kändes helt rätt",
-    hint: "Valfritt — men det här är det enskilt mest värdefulla fältet. Ett konkret exempel låter AI matcha din stil istället för att gissa utifrån adjektiv.",
-    optional: true,
-  },
-  {
-    id: "wish",
+    id: "sista_tanken",
     category: "Sista tanken",
-    question: "En sak du önskar att AI gjorde annorlunda — eller mer av?",
-    type: "text",
-    placeholder: "t.ex. Ställ klargörande frågor innan du svarar, eller rekommendera bara ett alternativ istället för fem",
-    hint: "Detta blir en stående instruktion i din personaliseringsprompt.",
-    optional: true,
+    title: "En önskan till din AI",
+    subtitle: "Valfritt — men din chans att lägga till något unikt.",
+    qs: [
+      {
+        id: "wish", type: "text",
+        label: null,
+        placeholder: "t.ex. Ställ klargörande frågor innan du svarar, eller rekommendera bara ett alternativ istället för fem",
+        hint: "Detta blir en stående instruktion i din personaliseringsprompt.",
+        optional: true,
+      }
+    ]
   },
 ];
+
+const N = PAGES.length;
 
 const CAT_CLR = {
   "Om dig": "#D9480F",
@@ -232,31 +492,30 @@ const CAT_CLR = {
   "Hur du tänker": "#A8480A",
   "Intressen & kontext": "#CA6510",
   "Vad som ska undvikas": "#B23A1E",
-  "Extra kontext": "#9C6310",
-  "Exempel": "#B5650B",
+  "Mål & bakgrund": "#9C6310",
+  "Stil & exempel": "#B5650B",
   "Sista tanken": "#D9480F",
 };
 
+// ── Prompt generation ──────────────────────────────────────
 function generatePrompt(a) {
   const out = [];
   out.push("Använd denna profil för att personalisera varje svar i vår konversation. Tillämpa den naturligt — inget behov av att nämna eller referera till denna uppsättning.\n");
 
-  // Merges selected options with any free-text "other" entries (comma-separated)
   function multiVals(id){
     const base = (a[id] || []).slice();
     const other = (a[id + "_other"] || "").trim();
-    if (other) {
-      other.split(",").map(s => s.trim()).filter(Boolean).forEach(v => {
-        if (!base.includes(v)) base.push(v);
-      });
-    }
+    if (other) other.split(",").map(s=>s.trim()).filter(Boolean).forEach(v=>{if(!base.includes(v))base.push(v);});
     return base;
   }
 
   if (a.name_role || a.industry || a.expertise) {
     out.push("## Vem jag är");
     if (a.name_role) out.push(a.name_role + ".");
-    if (a.industry)  out.push("Område: " + a.industry);
+    if (a.industry) {
+      const ind = a.industry === "Annat" && a.industry_annat ? "Annat: " + a.industry_annat : a.industry;
+      out.push("Område: " + ind);
+    }
     if (a.expertise) out.push("Expertis: " + a.expertise);
     out.push("");
   }
@@ -327,254 +586,326 @@ function generatePrompt(a) {
   return out.join("\n").trim();
 }
 
-// ── State ──
+// ── State ──────────────────────────────────────────────────
 let step = -1;
 let ans = {};
 let copied = false;
+let editOpen = false;
 
-const N = QUESTIONS.length;
 const app = document.getElementById("app");
 const progressTrack = document.getElementById("progress-track");
 const progressFill = document.getElementById("progress-fill");
 
-function esc(s){
-  const d = document.createElement("div");
-  d.innerText = s;
-  return d.innerHTML;
-}
+function esc(s){const d=document.createElement("div");d.innerText=s;return d.innerHTML;}
+function escAttr(s){return String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");}
 
-// Escapes a string for safe embedding inside an HTML attribute (e.g. onclick="...")
-// where the value itself is JS source code containing a JSON string literal.
-function escAttr(s){
-  return String(s)
-    .replace(/&/g, "&amp;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
-
-function next(){ step = step + 1; render(); }
+// ── Navigation ──────────────────────────────────────────────
+function next(){ step = Math.min(N, step + 1); render(); }
 function back(){ step = Math.max(-1, step - 1); render(); }
+function goToStep(s){ step = s; render(); }
 
-function pickSingle(id, val){
-  ans[id] = val;
-  render();
-  setTimeout(next, 300);
-}
-
-function toggleMulti(id, val, max){
-  const cur = ans[id] || [];
-  if (cur.includes(val)) {
-    ans[id] = cur.filter(v => v !== val);
-  } else {
-    if (max && cur.length >= max) return;
-    ans[id] = [...cur, val];
-  }
-  render();
-}
-
-function setTxt(id, val){
-  ans[id] = val;
-  updateNextButtonState();
-}
-
-function updateNextButtonState(){
-  const isDone = step >= N;
-  const q = (step >= 0 && !isDone) ? QUESTIONS[step] : null;
-  if (!q) return;
-  const nextBtn = document.querySelector("button.next");
-  if (nextBtn) nextBtn.disabled = !canNext(q);
-}
-
-function canNext(q){
-  if (!q) return true;
-  if (q.optional) return true;
-  const a = ans[q.id];
-  if (q.type === "text") return !!(a && a.trim());
-  if (q.type === "single") return !!a;
-  if (q.type === "multi") {
-    const hasSelection = !!(a && a.length > 0);
-    const hasOther = !!((ans[q.id + "_other"] || "").trim());
-    return hasSelection || hasOther;
+// ── canNext ─────────────────────────────────────────────────
+function canNext(page){
+  if (!page) return true;
+  for (const q of page.qs) {
+    if (q.optional) continue;
+    const a = ans[q.id];
+    if (q.type === "text") { if (!a || !a.trim()) return false; }
+    else if (q.type === "single") { if (!a) return false; }
+    else if (q.type === "multi") {
+      const hasSel = !!(a && a.length > 0);
+      const hasOther = !!((ans[q.id+"_other"]||"").trim());
+      if (!hasSel && !hasOther) return false;
+    }
   }
   return true;
 }
 
+// ── No-flicker interactions ─────────────────────────────────
+function pickSingle(el, qId, val){
+  ans[qId] = val;
+  const group = el.closest("[data-qid]");
+  group.querySelectorAll(".opt").forEach(b => b.classList.remove("on"));
+  el.classList.add("on");
+  // Show/hide "Annat" text field for industry
+  if (qId === "industry") {
+    const w = document.getElementById("annat-wrap");
+    if (w) w.className = "annat-wrap" + (val === "Annat" ? " show" : "");
+  }
+  _updateNextBtn();
+}
+
+function toggleMulti(el, qId, val, max){
+  const cur = ans[qId] || [];
+  if (cur.includes(val)) {
+    ans[qId] = cur.filter(v => v !== val);
+    el.classList.remove("on");
+  } else {
+    if (max && cur.length >= max) return;
+    ans[qId] = [...cur, val];
+    el.classList.add("on");
+  }
+  const note = document.getElementById("max-note-" + qId);
+  if (note && max) note.textContent = (ans[qId]||[]).length + " / " + max + " valda";
+  _updateNextBtn();
+}
+
+function _updateNextBtn(){
+  const btn = document.getElementById("next-btn");
+  if (btn) btn.disabled = !canNext(PAGES[step]);
+}
+
+function handleOtherInput(el, qId){
+  ans[qId + "_other"] = el.value;
+  _updateNextBtn();
+}
+
+function handleAnnatInput(el){
+  ans["industry_annat"] = el.value;
+}
+
+function handleTxtInput(el, qId){
+  ans[qId] = el.value;
+  _updateNextBtn();
+}
+
+function handleNext(){
+  const page = PAGES[step];
+  if (!canNext(page)) return;
+  next();
+}
+
+// ── Copy prompt ─────────────────────────────────────────────
 async function copyPrompt(){
   const text = generatePrompt(ans);
   try {
     await navigator.clipboard.writeText(text);
     copied = true;
-  } catch (e) {
-    // Fallback for environments without clipboard API permission
+  } catch(e){
     const ta = document.createElement("textarea");
     ta.value = text;
-    document.body.appendChild(ta);
-    ta.select();
-    try { document.execCommand("copy"); copied = true; } catch (e2) { copied = false; }
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); copied = true; } catch(e2){ copied = false; }
     document.body.removeChild(ta);
   }
-  render();
-  setTimeout(() => { copied = false; render(); }, 2200);
+  const btn = document.getElementById("cp-btn");
+  if (btn){ btn.classList.add("ok"); btn.textContent = "✓ Kopierad!"; }
+  setTimeout(()=>{
+    copied = false;
+    const b = document.getElementById("cp-btn");
+    if (b){ b.classList.remove("ok"); b.textContent = "Kopiera prompt"; }
+  }, 2200);
 }
 
-function startOver(){
-  step = -1;
-  ans = {};
-  render();
+function startOver(){ step=-1; ans={}; editOpen=false; render(); }
+
+function toggleEdit(){
+  editOpen = !editOpen;
+  const rows = document.getElementById("edit-rows");
+  const btn  = document.getElementById("edit-toggle");
+  if (!rows || !btn) return;
+  rows.className = "edit-rows" + (editOpen?" open":"");
+  btn.className  = "edit-toggle" + (editOpen?" open":"");
 }
 
+// ── Prompt live-update from edit textareas ───────────────────
+function editTxt(qId, val){
+  ans[qId] = val;
+  const pbox = document.getElementById("pbox");
+  if (pbox) pbox.textContent = generatePrompt(ans);
+}
+
+// ── Render ──────────────────────────────────────────────────
 function render(){
   const isIntro = step === -1;
-  const isDone = step >= N;
-  const q = (!isIntro && !isDone) ? QUESTIONS[step] : null;
-  const pct = isDone ? 100 : isIntro ? 0 : ((step + 1) / N) * 100;
+  const isDone  = step >= N;
+  const page    = (!isIntro && !isDone) ? PAGES[step] : null;
+  const pct     = isDone ? 100 : isIntro ? 0 : ((step + 1) / N) * 100;
 
-  if (isIntro) {
-    progressTrack.style.display = "none";
-  } else {
-    progressTrack.style.display = "block";
-    progressFill.style.width = pct + "%";
-  }
+  progressTrack.style.display = isIntro ? "none" : "block";
+  if (!isIntro) progressFill.style.width = pct + "%";
+
+  // update theme btn text since html might have re-rendered
+  updateThemeBtn(document.documentElement.dataset.theme);
 
   let html = "";
 
+  // ── Intro ──
   if (isIntro) {
-    html += `
-      <div class="fade" style="padding-top:72px;">
-        <div class="badge">AI-personalisering</div>
-        <h1>Bygg din<br><span style="color:var(--acc)">AI-profil.</span></h1>
-        <p style="color:var(--muted);font-size:16px;line-height:1.7;margin:0 0 40px;max-width:450px;">
-          ${N} frågor. En prompt du kan klistra in i vilken AI-chatt som helst — Claude, ChatGPT, Gemini — så att den vet vem du är, hur du tänker och exakt vad du behöver.
-        </p>
-        <div class="stats">
-          <div class="stat" style="border-right:1px solid var(--bord);"><div class="stat-val">${N}</div><div class="stat-label">frågor</div></div>
-          <div class="stat" style="border-right:1px solid var(--bord);"><div class="stat-val">~4 min</div><div class="stat-label">att slutföra</div></div>
-          <div class="stat"><div class="stat-val">1 prompt</div><div class="stat-label">funkar var som helst</div></div>
-        </div>
-        <button class="next" style="width:100%;padding:16px;font-size:16px;" onclick="next()">Börja bygga min profil →</button>
-        <div class="privacy-note">
-          🔒 <strong>Inget sparas och inget skickas.</strong> Hela quizet körs lokalt i din webbläsare. Dina svar lagras aldrig, skickas aldrig till någon server och försvinner om du laddar om sidan. Det enda som lämnar din enhet är prompten — och bara när du själv väljer att kopiera den.
-        </div>
+    html = `
+    <div class="fade" style="padding-top:72px">
+      <div class="badge">AI-personalisering</div>
+      <h1>Bygg din<br><span style="color:var(--acc)">AI-profil.</span></h1>
+      <p style="color:var(--muted);font-size:16px;line-height:1.7;margin:0 0 40px;max-width:450px">
+        ${N} steg. En prompt du kan klistra in i vilken AI-chatt som helst — Claude, ChatGPT, Gemini — så att den vet vem du är, hur du tänker och exakt vad du behöver.
+      </p>
+      <div class="stats">
+        <div class="stat" style="border-right:1px solid var(--bord)"><div class="stat-val">${N}</div><div class="stat-label">steg</div></div>
+        <div class="stat" style="border-right:1px solid var(--bord)"><div class="stat-val">~4 min</div><div class="stat-label">att slutföra</div></div>
+        <div class="stat"><div class="stat-val">1 prompt</div><div class="stat-label">funkar var som helst</div></div>
       </div>
-    `;
-  } else if (q) {
-    const catColor = CAT_CLR[q.category] || "#E8590C";
-    let subtext = "";
-    if (q.optional) subtext = "Valfritt — hoppa gärna över";
-    else if (q.type === "single") subtext = "Välj ett för att fortsätta";
-    else if (q.type === "multi" && q.maxSelect) subtext = `Välj upp till ${q.maxSelect} — ${(ans[q.id]||[]).length} valda`;
-    else subtext = "Välj alla som passar";
+      <button class="next" style="width:100%;padding:16px;font-size:16px" onclick="next()">Börja bygga min profil →</button>
+      <div class="privacy-note" style="margin-top:24px">
+        🔒 <strong>Inget sparas och inget skickas.</strong> Hela quizet körs lokalt i din webbläsare. Dina svar lagras aldrig och försvinner om du laddar om sidan. Det enda som lämnar din enhet är prompten — och bara när du själv väljer att kopiera den.
+      </div>
+    </div>`;
 
-    html += `<div class="fade" style="padding-top:52px;">`;
-    html += `
+  // ── Question page ──
+  } else if (page) {
+    const catColor = CAT_CLR[page.category] || "#E8590C";
+    const isPageOptional = page.qs.every(q => q.optional);
+    const disabled = !canNext(page) ? " disabled" : "";
+
+    html = `<div class="fade" style="padding-top:52px">
       <div class="qhead">
-        <span class="cat-pill" style="background:${catColor}18;border-color:${catColor}30;color:${catColor};">${esc(q.category)}</span>
+        <span class="cat-pill" style="background:${catColor}18;border-color:${catColor}30;color:${catColor}">${esc(page.category)}</span>
         <span class="counter">${step + 1} / ${N}</span>
       </div>
-      <h2 class="qtitle">${esc(q.question)}</h2>
-      <p class="qsub">${subtext}</p>
-    `;
+      <h2 class="qtitle">${esc(page.title)}</h2>
+      <p class="qsub">${esc(page.subtitle || "")}</p>`;
 
-    if (q.type === "text") {
-      html += `<textarea id="txt-${q.id}" rows="3" placeholder="${esc(q.placeholder||"")}">${esc(ans[q.id]||"")}</textarea>`;
-      if (q.hint) html += `<p style="color:var(--muted);font-size:12px;margin-top:8px;line-height:1.5;">${esc(q.hint)}</p>`;
-    }
+    for (const q of page.qs) {
+      if (q.label) html += `<p class="qlabel">${esc(q.label)}</p>`;
 
-    if (q.type === "single") {
-      html += `<div style="display:flex;flex-direction:column;">`;
-      q.options.forEach(opt => {
-        const on = ans[q.id] === opt ? " on" : "";
-        html += `<button class="opt${on}" onclick="pickSingle('${q.id}', ${escAttr(JSON.stringify(opt))})">${esc(opt)}</button>`;
-      });
-      html += `</div>`;
-    }
+      if (q.type === "text") {
+        html += `<textarea id="ta-${q.id}" rows="3" placeholder="${escAttr(q.placeholder||"")}" oninput="handleTxtInput(this,'${q.id}')">${esc(ans[q.id]||"")}</textarea>`;
+        if (q.hint) html += `<p class="hint">${esc(q.hint)}</p>`;
+      }
 
-    if (q.type === "multi") {
-      html += `<div>`;
-      q.options.forEach(opt => {
-        const on = (ans[q.id]||[]).includes(opt);
-        html += `<button class="tag${on?" on":""}" onclick="toggleMulti('${q.id}', ${escAttr(JSON.stringify(opt))}, ${q.maxSelect||0})">${on?"✓ ":""}${esc(opt)}</button>`;
-      });
-      html += `</div>`;
-      if (q.allowOther) {
-        html += `<input type="text" class="other-input" id="other-${q.id}" placeholder="Passar inget? Skriv eget — separera flera med komma" value="${escAttr(ans[q.id+'_other']||'')}">`;
+      if (q.type === "single") {
+        html += `<div data-qid="${q.id}">`;
+        q.options.forEach(opt => {
+          const on = ans[q.id] === opt ? " on" : "";
+          html += `<button class="opt${on}" onclick="pickSingle(this,'${q.id}',${escAttr(JSON.stringify(opt))})">${esc(opt)}</button>`;
+        });
+        html += `</div>`;
+        if (q.hasAnnat) {
+          const showAnnat = ans[q.id] === "Annat";
+          html += `<div class="annat-wrap${showAnnat?" show":""}" id="annat-wrap">
+            <input type="text" class="other-input" placeholder="Beskriv ditt område med egna ord" value="${escAttr(ans["industry_annat"]||"")}" oninput="handleAnnatInput(this)">
+          </div>`;
+        }
+      }
+
+      if (q.type === "multi") {
+        const sel = ans[q.id] || [];
+        html += `<div data-qid="${q.id}">`;
+        q.options.forEach(opt => {
+          const on = sel.includes(opt) ? " on" : "";
+          html += `<button class="tag${on}" onclick="toggleMulti(this,'${q.id}',${escAttr(JSON.stringify(opt))},${q.maxSelect||0})">${esc(opt)}</button>`;
+        });
+        html += `</div>`;
+        if (q.maxSelect) {
+          html += `<p class="max-note" id="max-note-${q.id}">${sel.length} / ${q.maxSelect} valda</p>`;
+        }
+        if (q.allowOther) {
+          html += `<input type="text" class="other-input" id="other-${q.id}" placeholder="Passar inget? Skriv eget — separera flera med komma" value="${escAttr(ans[q.id+'_other']||'')}" oninput="handleOtherInput(this,'${q.id}')">`;
+        }
       }
     }
 
-    html += `<div class="navrow">`;
-    html += `<button class="back" onclick="back()">← Tillbaka</button>`;
-    if (q.type !== "single") {
-      const disabled = !canNext(q) ? "disabled" : "";
-      const label = step === N-1 ? "Skapa min prompt →" : "Nästa →";
-      html += `<button class="next" ${disabled} onclick="handleNext()">${label}</button>`;
-    }
-    html += `</div>`;
+    const isLast = step === N - 1;
+    html += `<div class="navrow">
+      <button class="back" onclick="back()">← Tillbaka</button>
+      <button class="next" id="next-btn"${disabled} onclick="handleNext()">${isLast ? "Skapa min prompt →" : "Nästa →"}</button>
+    </div>`;
 
-    if (q.optional && q.type !== "single") {
-      html += `<button class="skip" onclick="next()">Hoppa över denna fråga</button>`;
+    if (isPageOptional) {
+      html += `<button class="skip" onclick="next()">Hoppa över</button>`;
     }
 
     html += `</div>`;
+
+  // ── Done screen ──
   } else if (isDone) {
     const promptText = generatePrompt(ans);
-    html += `
-      <div class="fade" style="padding-top:52px;">
-        <div class="badge" style="display:inline-flex;align-items:center;gap:6px;">✓ Profil klar</div>
-        <h2 style="font-size:clamp(22px,4vw,30px);font-weight:800;margin-bottom:10px;letter-spacing:-.02em;">
-          Din personaliseringsprompt är klar.
-        </h2>
-        <p style="color:var(--muted);font-size:14px;margin-bottom:22px;line-height:1.65;">
-          Kopiera prompten nedan och klistra in den i början av valfri AI-konversation. I Claude kan du också spara den under <strong style="color:var(--txt)">Inställningar → Användarpreferenser</strong> så att den används automatiskt i alla chattar.
-        </p>
-        <div class="info-box">
-          <strong>Så använder du den var som helst:</strong> Klistra in detta som ditt allra första meddelande i en ny chatt, eller lägg till den som systemprompt via API. Funkar med Claude, ChatGPT, Gemini, Mistral och andra.
-        </div>
-        <div class="pbox">${esc(promptText)}</div>
-        <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">
-          <button class="cpbtn${copied?" ok":""}" onclick="copyPrompt()">${copied ? "✓ Kopierad!" : "Kopiera prompt"}</button>
-          <button class="back" style="font-size:13px;padding:11px 16px;" onclick="startOver()">Börja om</button>
-        </div>
-        <div class="share-box">
-          <strong>💡 Dela quizet, inte prompten.</strong> Din prompt är specifik för <em>dig</em>. Om kollegor eller vänner också vill ha personalisering, skicka quizet till dem — alla svar blir deras egen unika prompt.
-        </div>
-        <div class="privacy-note" style="margin-top:16px;">
-          🔒 Prompten skapades helt i din webbläsare. Inga svar har sparats eller skickats någonstans — laddar du om sidan är allt borta.
+
+    // Build edit rows
+    let editRowsHtml = "";
+    PAGES.forEach((p, i) => {
+      p.qs.forEach(q => {
+        let valStr = "";
+        if (q.type === "text") {
+          const v = ans[q.id] || "";
+          valStr = v
+            ? `<textarea class="edit-ta" oninput="editTxt('${q.id}',this.value)">${esc(v)}</textarea>`
+            : `<span style="color:var(--muted);font-size:13px">Inte besvarad</span>`;
+        } else if (q.type === "single") {
+          let v = ans[q.id] || "";
+          if (q.id === "industry" && v === "Annat" && ans.industry_annat) v = "Annat: " + ans.industry_annat;
+          valStr = v
+            ? `<span>${esc(v)}</span>`
+            : `<span style="color:var(--muted);font-size:13px">Inte besvarad</span>`;
+        } else if (q.type === "multi") {
+          const vals = (ans[q.id]||[]).slice();
+          const other = (ans[q.id+"_other"]||"").trim();
+          if (other) other.split(",").map(s=>s.trim()).filter(Boolean).forEach(v=>{if(!vals.includes(v))vals.push(v);});
+          valStr = vals.length
+            ? `<span>${esc(vals.join(", "))}</span>`
+            : `<span style="color:var(--muted);font-size:13px">Inget valt</span>`;
+        }
+        const qLabel = q.label || p.title;
+        editRowsHtml += `
+          <div class="edit-row">
+            <div class="edit-row-head">
+              <div style="flex:1">
+                <div class="edit-row-q">${esc(qLabel)}</div>
+                <div class="edit-row-val">${valStr}</div>
+              </div>
+              <button class="edit-btn" onclick="goToStep(${i})">Ändra</button>
+            </div>
+          </div>`;
+      });
+    });
+
+    html = `
+    <div class="fade" style="padding-top:52px">
+      <div class="badge" style="display:inline-flex;align-items:center;gap:6px">✓ Profil klar</div>
+      <h2 style="font-size:clamp(22px,4vw,30px);font-weight:800;margin-bottom:10px;letter-spacing:-.02em">
+        Din personaliseringsprompt är klar.
+      </h2>
+      <p style="color:var(--muted);font-size:14px;margin-bottom:22px;line-height:1.65">
+        Kopiera prompten nedan och klistra in den i början av valfri AI-konversation. I Claude kan du också spara den under <strong style="color:var(--txt)">Inställningar → Användarpreferenser</strong> så att den används automatiskt i alla chattar.
+      </p>
+      <div class="info-box">
+        <strong>Så använder du den var som helst:</strong> Klistra in detta som ditt allra första meddelande i en ny chatt, eller lägg till den som systemprompt via API. Funkar med Claude, ChatGPT, Gemini, Mistral och andra.
+      </div>
+      <div class="pbox" id="pbox">${esc(promptText)}</div>
+      <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+        <button class="cpbtn${copied?" ok":""}" id="cp-btn" onclick="copyPrompt()">${copied?"✓ Kopierad!":"Kopiera prompt"}</button>
+        <button class="back" style="font-size:13px;padding:11px 16px" onclick="startOver()">Börja om</button>
+      </div>
+
+      <div class="edit-section">
+        <button class="edit-toggle" id="edit-toggle" onclick="toggleEdit()">
+          <span>Granska & redigera svar</span>
+          <span class="arrow">▾</span>
+        </button>
+        <div class="edit-rows${editOpen?" open":""}" id="edit-rows">
+          ${editRowsHtml}
         </div>
       </div>
-    `;
+
+      <div class="share-box">
+        <strong>💡 Dela quizet, inte prompten.</strong> Din prompt är specifik för <em>dig</em>. Om kollegor eller vänner också vill ha personalisering, skicka quizet till dem — alla svar blir deras egen unika prompt.
+      </div>
+      <div class="privacy-note" style="margin-top:16px">
+        🔒 Prompten skapades helt i din webbläsare. Inga svar har sparats eller skickats någonstans.
+      </div>
+    </div>`;
   }
 
   app.innerHTML = html;
+  updateThemeBtn(document.documentElement.dataset.theme);
 
-  // Re-attach textarea listener after render since innerHTML wipes it
-  if (q && q.type === "text") {
-    const ta = document.getElementById(`txt-${q.id}`);
-    if (ta) {
-      ta.addEventListener("input", (e) => setTxt(q.id, e.target.value));
-      ta.focus();
-    }
+  // Focus first textarea on text pages
+  if (page) {
+    const firstTa = app.querySelector("textarea");
+    if (firstTa && page.qs[0]?.type === "text") firstTa.focus();
   }
-
-  // Wire up the free-text "other" input on multi-select questions
-  if (q && q.type === "multi" && q.allowOther) {
-    const oi = document.getElementById(`other-${q.id}`);
-    if (oi) {
-      oi.addEventListener("input", (e) => {
-        ans[q.id + "_other"] = e.target.value;
-        updateNextButtonState();
-      });
-    }
-  }
-}
-
-function handleNext(){
-  const q = QUESTIONS[step];
-  if (!canNext(q)) return;
-  next();
 }
 
 render();
 </script>
-
 </body>
 </html>
