@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bygg din AI-profil</title>
+<style>
+:root{
+  --bg:#FFF9F0;
+  --card:#FFFFFF;
+  --bord:#F0DCC2;
+  --acc:#E8590C;
+  --acc2:#F59F00;
+  --adim:rgba(232,89,12,0.08);
+  --abord:rgba(232,89,12,0.35);
+  --txt:#3A2A1A;
+  --muted:#9A7B5A;
+  --pill:#FFFDF8;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  min-height:100vh;
+  background:var(--bg);
+  color:var(--txt);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  padding:0 16px;
+}
+@keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.fade{animation:up .28s ease forwards}
+.opt{cursor:pointer;border-radius:10px;border:1.5px solid var(--bord);background:var(--pill);color:var(--txt);padding:11px 16px;font-size:14px;transition:all .14s;text-align:left;line-height:1.45;font-family:inherit;display:block;width:100%;margin-bottom:8px}
+.opt:hover{border-color:rgba(232,89,12,.5);background:#FFF4E6}
+.opt.on{border-color:var(--acc);background:rgba(245,159,0,.14)}
+.tag{cursor:pointer;border-radius:8px;border:1.5px solid var(--bord);background:var(--pill);color:var(--txt);padding:8px 13px;font-size:13px;transition:all .14s;font-family:inherit;line-height:1.3;display:inline-block;margin:0 8px 8px 0}
+.tag:hover{border-color:rgba(232,89,12,.5);background:#FFF4E6}
+.tag.on{border-color:var(--acc);background:rgba(245,159,0,.14)}
+textarea{width:100%;background:var(--pill);border:1.5px solid var(--bord);border-radius:10px;color:var(--txt);font-size:15px;padding:14px 16px;outline:none;font-family:inherit;resize:vertical;min-height:82px;line-height:1.55;transition:border-color .14s}
+textarea:focus{border-color:var(--acc)}
+textarea::placeholder{color:var(--muted)}
+.other-input{width:100%;margin-top:14px;background:var(--pill);border:1.5px solid var(--bord);border-radius:10px;color:var(--txt);font-size:14px;padding:11px 14px;outline:none;font-family:inherit;transition:border-color .14s}
+.other-input:focus{border-color:var(--acc)}
+.other-input::placeholder{color:var(--muted)}
+.next{background:var(--acc);color:#fff;font-weight:700;border:none;border-radius:10px;padding:12px 22px;font-size:15px;cursor:pointer;font-family:inherit;transition:opacity .14s,transform .1s;flex:1}
+.next:hover{opacity:.88;transform:translateY(-1px)}
+.next:active{transform:translateY(0)}
+.next:disabled{opacity:.32;cursor:not-allowed;transform:none!important}
+.back{background:transparent;color:var(--muted);border:1.5px solid var(--bord);border-radius:10px;padding:12px 16px;font-size:15px;cursor:pointer;font-family:inherit;transition:all .14s}
+.back:hover{color:var(--txt);border-color:#D9A96E}
+.pbox{background:var(--pill);border:1.5px solid var(--bord);border-radius:12px;padding:20px;font-family:'Menlo','Monaco',monospace;font-size:12px;color:#6B5640;white-space:pre-wrap;max-height:340px;overflow-y:auto;line-height:1.8;word-break:break-word}
+.cpbtn{background:var(--acc);border:1.5px solid var(--acc);color:#fff;border-radius:9px;padding:11px 22px;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;transition:all .14s}
+.cpbtn:hover{opacity:.88}
+.cpbtn.ok{background:var(--acc2);border-color:var(--acc2)}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:var(--bord);border-radius:3px}
+.wrap{max-width:600px;margin:0 auto;padding-bottom:80px}
+.progress-track{position:fixed;top:0;left:0;right:0;height:3px;background:var(--bord);z-index:99}
+.progress-fill{height:100%;background:linear-gradient(90deg,#F59F00,#E8590C);transition:width .5s cubic-bezier(.4,0,.2,1)}
+.badge{display:inline-block;background:var(--adim);border:1px solid var(--abord);border-radius:20px;padding:5px 13px;font-size:11px;color:var(--acc);font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:28px}
+h1{font-size:clamp(30px,7vw,46px);font-weight:800;line-height:1.1;margin:0 0 16px;letter-spacing:-.025em}
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;background:var(--card);border:1px solid var(--bord);border-radius:12px;padding:20px 0;margin-bottom:36px;text-align:center}
+.stat{padding:0 16px}
+.stat-val{font-size:22px;font-weight:700}
+.stat-label{font-size:12px;color:var(--muted);margin-top:3px}
+.cat-pill{border-radius:20px;padding:4px 11px;font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;border:1px solid}
+.qhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:36px}
+.counter{color:var(--muted);font-size:13px}
+.qtitle{font-size:clamp(18px,3.8vw,24px);font-weight:700;line-height:1.3;margin-bottom:4px}
+.qsub{color:#B58A5E;font-size:13px;margin-bottom:28px;min-height:18px}
+.navrow{display:flex;gap:10px;margin-top:36px}
+.skip{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;margin-top:14px;text-decoration:underline;padding:0;font-family:inherit;display:block}
+.info-box{background:var(--card);border:1px solid var(--bord);border-radius:10px;padding:14px 18px;margin-bottom:20px;font-size:13px;color:var(--muted);line-height:1.6}
+.info-box strong{color:var(--txt)}
+.share-box{margin-top:28px;background:var(--card);border:1px solid var(--bord);border-radius:10px;padding:16px 20px;font-size:13px;color:var(--muted);line-height:1.65}
+.share-box strong{color:var(--txt)}
+.privacy-note{margin-top:24px;background:var(--adim);border:1px solid var(--abord);border-radius:10px;padding:13px 16px;font-size:12.5px;color:#8A6A48;line-height:1.6;max-width:520px}
+.privacy-note strong{color:var(--acc)}
+</style>
+</head>
+<body>
+
+<div id="progress-track" class="progress-track" style="display:none;">
+  <div id="progress-fill" class="progress-fill" style="width:0%"></div>
+</div>
+
+<div class="wrap" id="app"></div>
+
+<script>
+const QUESTIONS = [
+  {
+    id: "name_role",
+    category: "Om dig",
+    question: "Vad heter du, och vad jobbar eller studerar du med?",
+    type: "text",
+    placeholder: "t.ex. Jag heter Maja, frilansande UX-designer i Stockholm",
+    hint: "Hjälper AI att tilltala dig korrekt och förstå din yrkesmässiga kontext.",
+    optional: false,
+  },
+  {
+    id: "industry",
+    category: "Om dig",
+    question: "Vilken bransch eller område jobbar du inom?",
+    type: "single",
+    options: ["Tech & mjukvara","Kreativt & design","Affärer & finans","Vård & vetenskap","Utbildning & forskning","Marknadsföring & media","Juridik & policy","Hantverk & drift","Student","Annat / blandat"],
+    optional: false,
+  },
+  {
+    id: "expertise",
+    category: "Om dig",
+    question: "Hur skulle du beskriva din övergripande expertisnivå?",
+    type: "single",
+    options: ["Nybörjare — lär mig fortfarande grunderna","Mellannivå — solida grunder","Avancerad — djup kunskap inom mitt område","Expert — jag är specialist"],
+    optional: false,
+  },
+  {
+    id: "use_cases",
+    category: "Hur du använder AI",
+    question: "Vad använder du främst AI till? Välj alla som passar.",
+    type: "multi",
+    allowOther: true,
+    options: ["Skriva & redigera","Kodning & utveckling","Research & analys","Kreativa projekt","Affärsstrategi","Lära mig nya ämnen","Brainstorming & idéer","Data & kalkylblad","Kund- / klientarbete","Personlig planering"],
+    optional: false,
+  },
+  {
+    id: "response_length",
+    category: "Kommunikationsstil",
+    question: "Hur långa bör AI-svar vara?",
+    type: "single",
+    options: ["Kort & koncist — kom till saken snabbt","Balanserat — kontext utan överbelastning","Utförligt — jag vill ha fullständiga förklaringar","Det beror på uppgiften"],
+    optional: false,
+  },
+  {
+    id: "tone",
+    category: "Kommunikationsstil",
+    question: "Vilken ton känns rätt för dig?",
+    type: "single",
+    options: ["Professionell & formell","Avslappnad & samtalston","Direkt & utan krusiduller","Varm & uppmuntrande","Professionell men vänlig"],
+    optional: false,
+  },
+  {
+    id: "format",
+    category: "Kommunikationsstil",
+    question: "Hur vill du att information formateras?",
+    type: "single",
+    options: ["Punktlistor — jag skummar snabbt","Löpande text — jag läser ordentligt","Blandat — beror på ämnet","Rubriker & struktur — jag vill kunna navigera","Tabeller & jämförelser när det är användbart"],
+    optional: false,
+  },
+  {
+    id: "pushback",
+    category: "Arbetsstil",
+    question: "Ska AI ifrågasätta eller utmana dina idéer?",
+    type: "single",
+    options: ["Ja — jag vill ha ärlig kritik, även om det gör ont","Ibland — flagga bara verkliga problem","Sällan — bara vid stora problem","Nej — hjälp mig bara genomföra min vision"],
+    optional: false,
+  },
+  {
+    id: "technicality",
+    category: "Arbetsstil",
+    question: "Hur tekniska ska svaren vara?",
+    type: "single",
+    options: ["Vardagligt språk alltid","Lite teknisk jargong är okej","Teknisk djup är välkommet","Matcha nivån på min fråga"],
+    optional: false,
+  },
+  {
+    id: "learning_style",
+    category: "Hur du tänker",
+    question: "Hur tar du bäst till dig ny information?",
+    type: "single",
+    options: ["Teori först, sedan exempel","Konkret exempel först, sedan varför","Bara konkreta steg — hoppa över teorin","Analogier och jämförelser hjälper mig mest","Frågor som får mig att tänka igenom det själv"],
+    optional: false,
+  },
+  {
+    id: "topics",
+    category: "Intressen & kontext",
+    question: "Vilka ämnen eller områden betyder mest för dig? Välj upp till 5.",
+    type: "multi",
+    maxSelect: 5,
+    allowOther: true,
+    options: ["Teknik & AI","Vetenskap & natur","Affärer & entreprenörskap","Konst & kultur","Hälsa & välmående","Personlig utveckling","Politik & samhälle","Filosofi & idéer","Sport & träning","Finans & investeringar","Resor & geografi","Mat & livsstil"],
+    optional: false,
+  },
+  {
+    id: "goals",
+    category: "Intressen & kontext",
+    question: "Vilka är dina huvudmål just nu?",
+    type: "text",
+    placeholder: "t.ex. Starta en frilansverksamhet, lära mig Python, skriva en roman, bli befordrad",
+    hint: "Jobb, privatliv eller båda — AI skräddarsyr förslag utifrån dessa.",
+    optional: true,
+  },
+  {
+    id: "frustrations",
+    category: "Vad som ska undvikas",
+    question: "Vad stör dig mest i AI-svar? Välj alla som passar.",
+    type: "multi",
+    allowOther: true,
+    options: ["För långt och utfyllt","För vagt eller obestämt","Överdrivna reservationer & friskrivningar","För formellt eller robotaktigt","Svarar inte på det jag faktiskt frågade","Upprepar saker jag redan vet","Vågar inte ge en tydlig åsikt","Pratar nedlåtande till mig"],
+    optional: false,
+  },
+  {
+    id: "background",
+    category: "Extra kontext",
+    question: "Något annat AI alltid bör ha i åtanke om dig?",
+    type: "text",
+    placeholder: "t.ex. Bosatt i Stockholm, sidoprojekt vid sidan av jobbet, föredrar europeiska exempel, förälder till två",
+    hint: "Valfritt — ger kontext som gör svaren mer förankrade i din verkliga vardag.",
+    optional: true,
+  },
+  {
+    id: "example",
+    category: "Exempel",
+    question: "Klistra in ett exempel på din egen text, eller ett AI-svar du tyckte var riktigt bra.",
+    type: "text",
+    placeholder: "t.ex. ett mejl du skrivit, ett stycke i din ton, eller ett AI-svar vars stil och längd kändes helt rätt",
+    hint: "Valfritt — men det här är det enskilt mest värdefulla fältet. Ett konkret exempel låter AI matcha din stil istället för att gissa utifrån adjektiv.",
+    optional: true,
+  },
+  {
+    id: "wish",
+    category: "Sista tanken",
+    question: "En sak du önskar att AI gjorde annorlunda — eller mer av?",
+    type: "text",
+    placeholder: "t.ex. Ställ klargörande frågor innan du svarar, eller rekommendera bara ett alternativ istället för fem",
+    hint: "Detta blir en stående instruktion i din personaliseringsprompt.",
+    optional: true,
+  },
+];
+
+const CAT_CLR = {
+  "Om dig": "#D9480F",
+  "Hur du använder AI": "#B5650B",
+  "Kommunikationsstil": "#C2410C",
+  "Arbetsstil": "#BE5A2E",
+  "Hur du tänker": "#A8480A",
+  "Intressen & kontext": "#CA6510",
+  "Vad som ska undvikas": "#B23A1E",
+  "Extra kontext": "#9C6310",
+  "Exempel": "#B5650B",
+  "Sista tanken": "#D9480F",
+};
+
+function generatePrompt(a) {
+  const out = [];
+  out.push("Använd denna profil för att personalisera varje svar i vår konversation. Tillämpa den naturligt — inget behov av att nämna eller referera till denna uppsättning.\n");
+
+  // Merges selected options with any free-text "other" entries (comma-separated)
+  function multiVals(id){
+    const base = (a[id] || []).slice();
+    const other = (a[id + "_other"] || "").trim();
+    if (other) {
+      other.split(",").map(s => s.trim()).filter(Boolean).forEach(v => {
+        if (!base.includes(v)) base.push(v);
+      });
+    }
+    return base;
+  }
+
+  if (a.name_role || a.industry || a.expertise) {
+    out.push("## Vem jag är");
+    if (a.name_role) out.push(a.name_role + ".");
+    if (a.industry)  out.push("Område: " + a.industry);
+    if (a.expertise) out.push("Expertis: " + a.expertise);
+    out.push("");
+  }
+
+  const useCases = multiVals("use_cases");
+  if (useCases.length) {
+    out.push("## Hur jag använder AI");
+    out.push("Jag använder främst AI till: " + useCases.join(", ") + ".");
+    out.push("");
+  }
+
+  const comm = [
+    a.response_length && "Svarslängd: " + a.response_length,
+    a.tone && "Ton: " + a.tone,
+    a.format && "Format: " + a.format,
+    a.technicality && "Teknisk djup: " + a.technicality,
+    a.pushback && "Feedbackstil: " + a.pushback,
+  ].filter(Boolean);
+  if (comm.length) {
+    out.push("## Kommunikationsstil");
+    comm.forEach(c => out.push("- " + c));
+    out.push("");
+  }
+
+  if (a.learning_style) {
+    out.push("## Hur jag lär mig bäst");
+    out.push(a.learning_style);
+    out.push("");
+  }
+
+  const topics = multiVals("topics");
+  if (topics.length) {
+    out.push("## Ämnen jag bryr mig om");
+    out.push(topics.join(", "));
+    out.push("");
+  }
+
+  if (a.goals) {
+    out.push("## Mina nuvarande mål");
+    out.push(a.goals);
+    out.push("");
+  }
+
+  if (a.background) {
+    out.push("## Kontext om mig");
+    out.push(a.background);
+    out.push("");
+  }
+
+  const frustrations = multiVals("frustrations");
+  if (frustrations.length) {
+    out.push("## Undvik gärna");
+    frustrations.forEach(f => out.push("- " + f));
+    out.push("");
+  }
+
+  if (a.example) {
+    out.push("## Exempel på min stil (matcha tonen och längden här)");
+    out.push(a.example);
+    out.push("");
+  }
+
+  if (a.wish) {
+    out.push("## Stående instruktion");
+    out.push(a.wish);
+  }
+
+  return out.join("\n").trim();
+}
+
+// ── State ──
+let step = -1;
+let ans = {};
+let copied = false;
+
+const N = QUESTIONS.length;
+const app = document.getElementById("app");
+const progressTrack = document.getElementById("progress-track");
+const progressFill = document.getElementById("progress-fill");
+
+function esc(s){
+  const d = document.createElement("div");
+  d.innerText = s;
+  return d.innerHTML;
+}
+
+// Escapes a string for safe embedding inside an HTML attribute (e.g. onclick="...")
+// where the value itself is JS source code containing a JSON string literal.
+function escAttr(s){
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function next(){ step = step + 1; render(); }
+function back(){ step = Math.max(-1, step - 1); render(); }
+
+function pickSingle(id, val){
+  ans[id] = val;
+  render();
+  setTimeout(next, 300);
+}
+
+function toggleMulti(id, val, max){
+  const cur = ans[id] || [];
+  if (cur.includes(val)) {
+    ans[id] = cur.filter(v => v !== val);
+  } else {
+    if (max && cur.length >= max) return;
+    ans[id] = [...cur, val];
+  }
+  render();
+}
+
+function setTxt(id, val){
+  ans[id] = val;
+  updateNextButtonState();
+}
+
+function updateNextButtonState(){
+  const isDone = step >= N;
+  const q = (step >= 0 && !isDone) ? QUESTIONS[step] : null;
+  if (!q) return;
+  const nextBtn = document.querySelector("button.next");
+  if (nextBtn) nextBtn.disabled = !canNext(q);
+}
+
+function canNext(q){
+  if (!q) return true;
+  if (q.optional) return true;
+  const a = ans[q.id];
+  if (q.type === "text") return !!(a && a.trim());
+  if (q.type === "single") return !!a;
+  if (q.type === "multi") {
+    const hasSelection = !!(a && a.length > 0);
+    const hasOther = !!((ans[q.id + "_other"] || "").trim());
+    return hasSelection || hasOther;
+  }
+  return true;
+}
+
+async function copyPrompt(){
+  const text = generatePrompt(ans);
+  try {
+    await navigator.clipboard.writeText(text);
+    copied = true;
+  } catch (e) {
+    // Fallback for environments without clipboard API permission
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand("copy"); copied = true; } catch (e2) { copied = false; }
+    document.body.removeChild(ta);
+  }
+  render();
+  setTimeout(() => { copied = false; render(); }, 2200);
+}
+
+function startOver(){
+  step = -1;
+  ans = {};
+  render();
+}
+
+function render(){
+  const isIntro = step === -1;
+  const isDone = step >= N;
+  const q = (!isIntro && !isDone) ? QUESTIONS[step] : null;
+  const pct = isDone ? 100 : isIntro ? 0 : ((step + 1) / N) * 100;
+
+  if (isIntro) {
+    progressTrack.style.display = "none";
+  } else {
+    progressTrack.style.display = "block";
+    progressFill.style.width = pct + "%";
+  }
+
+  let html = "";
+
+  if (isIntro) {
+    html += `
+      <div class="fade" style="padding-top:72px;">
+        <div class="badge">AI-personalisering</div>
+        <h1>Bygg din<br><span style="color:var(--acc)">AI-profil.</span></h1>
+        <p style="color:var(--muted);font-size:16px;line-height:1.7;margin:0 0 40px;max-width:450px;">
+          ${N} frågor. En prompt du kan klistra in i vilken AI-chatt som helst — Claude, ChatGPT, Gemini — så att den vet vem du är, hur du tänker och exakt vad du behöver.
+        </p>
+        <div class="stats">
+          <div class="stat" style="border-right:1px solid var(--bord);"><div class="stat-val">${N}</div><div class="stat-label">frågor</div></div>
+          <div class="stat" style="border-right:1px solid var(--bord);"><div class="stat-val">~4 min</div><div class="stat-label">att slutföra</div></div>
+          <div class="stat"><div class="stat-val">1 prompt</div><div class="stat-label">funkar var som helst</div></div>
+        </div>
+        <button class="next" style="width:100%;padding:16px;font-size:16px;" onclick="next()">Börja bygga min profil →</button>
+        <div class="privacy-note">
+          🔒 <strong>Inget sparas och inget skickas.</strong> Hela quizet körs lokalt i din webbläsare. Dina svar lagras aldrig, skickas aldrig till någon server och försvinner om du laddar om sidan. Det enda som lämnar din enhet är prompten — och bara när du själv väljer att kopiera den.
+        </div>
+      </div>
+    `;
+  } else if (q) {
+    const catColor = CAT_CLR[q.category] || "#E8590C";
+    let subtext = "";
+    if (q.optional) subtext = "Valfritt — hoppa gärna över";
+    else if (q.type === "single") subtext = "Välj ett för att fortsätta";
+    else if (q.type === "multi" && q.maxSelect) subtext = `Välj upp till ${q.maxSelect} — ${(ans[q.id]||[]).length} valda`;
+    else subtext = "Välj alla som passar";
+
+    html += `<div class="fade" style="padding-top:52px;">`;
+    html += `
+      <div class="qhead">
+        <span class="cat-pill" style="background:${catColor}18;border-color:${catColor}30;color:${catColor};">${esc(q.category)}</span>
+        <span class="counter">${step + 1} / ${N}</span>
+      </div>
+      <h2 class="qtitle">${esc(q.question)}</h2>
+      <p class="qsub">${subtext}</p>
+    `;
+
+    if (q.type === "text") {
+      html += `<textarea id="txt-${q.id}" rows="3" placeholder="${esc(q.placeholder||"")}">${esc(ans[q.id]||"")}</textarea>`;
+      if (q.hint) html += `<p style="color:var(--muted);font-size:12px;margin-top:8px;line-height:1.5;">${esc(q.hint)}</p>`;
+    }
+
+    if (q.type === "single") {
+      html += `<div style="display:flex;flex-direction:column;">`;
+      q.options.forEach(opt => {
+        const on = ans[q.id] === opt ? " on" : "";
+        html += `<button class="opt${on}" onclick="pickSingle('${q.id}', ${escAttr(JSON.stringify(opt))})">${esc(opt)}</button>`;
+      });
+      html += `</div>`;
+    }
+
+    if (q.type === "multi") {
+      html += `<div>`;
+      q.options.forEach(opt => {
+        const on = (ans[q.id]||[]).includes(opt);
+        html += `<button class="tag${on?" on":""}" onclick="toggleMulti('${q.id}', ${escAttr(JSON.stringify(opt))}, ${q.maxSelect||0})">${on?"✓ ":""}${esc(opt)}</button>`;
+      });
+      html += `</div>`;
+      if (q.allowOther) {
+        html += `<input type="text" class="other-input" id="other-${q.id}" placeholder="Passar inget? Skriv eget — separera flera med komma" value="${escAttr(ans[q.id+'_other']||'')}">`;
+      }
+    }
+
+    html += `<div class="navrow">`;
+    html += `<button class="back" onclick="back()">← Tillbaka</button>`;
+    if (q.type !== "single") {
+      const disabled = !canNext(q) ? "disabled" : "";
+      const label = step === N-1 ? "Skapa min prompt →" : "Nästa →";
+      html += `<button class="next" ${disabled} onclick="handleNext()">${label}</button>`;
+    }
+    html += `</div>`;
+
+    if (q.optional && q.type !== "single") {
+      html += `<button class="skip" onclick="next()">Hoppa över denna fråga</button>`;
+    }
+
+    html += `</div>`;
+  } else if (isDone) {
+    const promptText = generatePrompt(ans);
+    html += `
+      <div class="fade" style="padding-top:52px;">
+        <div class="badge" style="display:inline-flex;align-items:center;gap:6px;">✓ Profil klar</div>
+        <h2 style="font-size:clamp(22px,4vw,30px);font-weight:800;margin-bottom:10px;letter-spacing:-.02em;">
+          Din personaliseringsprompt är klar.
+        </h2>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:22px;line-height:1.65;">
+          Kopiera prompten nedan och klistra in den i början av valfri AI-konversation. I Claude kan du också spara den under <strong style="color:var(--txt)">Inställningar → Användarpreferenser</strong> så att den används automatiskt i alla chattar.
+        </p>
+        <div class="info-box">
+          <strong>Så använder du den var som helst:</strong> Klistra in detta som ditt allra första meddelande i en ny chatt, eller lägg till den som systemprompt via API. Funkar med Claude, ChatGPT, Gemini, Mistral och andra.
+        </div>
+        <div class="pbox">${esc(promptText)}</div>
+        <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">
+          <button class="cpbtn${copied?" ok":""}" onclick="copyPrompt()">${copied ? "✓ Kopierad!" : "Kopiera prompt"}</button>
+          <button class="back" style="font-size:13px;padding:11px 16px;" onclick="startOver()">Börja om</button>
+        </div>
+        <div class="share-box">
+          <strong>💡 Dela quizet, inte prompten.</strong> Din prompt är specifik för <em>dig</em>. Om kollegor eller vänner också vill ha personalisering, skicka quizet till dem — alla svar blir deras egen unika prompt.
+        </div>
+        <div class="privacy-note" style="margin-top:16px;">
+          🔒 Prompten skapades helt i din webbläsare. Inga svar har sparats eller skickats någonstans — laddar du om sidan är allt borta.
+        </div>
+      </div>
+    `;
+  }
+
+  app.innerHTML = html;
+
+  // Re-attach textarea listener after render since innerHTML wipes it
+  if (q && q.type === "text") {
+    const ta = document.getElementById(`txt-${q.id}`);
+    if (ta) {
+      ta.addEventListener("input", (e) => setTxt(q.id, e.target.value));
+      ta.focus();
+    }
+  }
+
+  // Wire up the free-text "other" input on multi-select questions
+  if (q && q.type === "multi" && q.allowOther) {
+    const oi = document.getElementById(`other-${q.id}`);
+    if (oi) {
+      oi.addEventListener("input", (e) => {
+        ans[q.id + "_other"] = e.target.value;
+        updateNextButtonState();
+      });
+    }
+  }
+}
+
+function handleNext(){
+  const q = QUESTIONS[step];
+  if (!canNext(q)) return;
+  next();
+}
+
+render();
+</script>
+
+</body>
+</html>
