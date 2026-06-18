@@ -271,6 +271,20 @@ h1{font-size:clamp(30px,7vw,46px);font-weight:800;line-height:1.1;margin:0 0 16p
 .annat-wrap{display:none;margin-top:10px}
 .annat-wrap.show{display:block}
 .max-note{font-size:12px;color:var(--muted);margin-top:4px}
+/* ── AI step guide ── */
+.ai-step{
+  display:flex;gap:14px;align-items:flex-start;
+  background:var(--card);border:1px solid var(--bord);border-radius:10px;
+  padding:13px 15px;margin-bottom:7px;
+}
+.ai-step-n{
+  min-width:24px;height:24px;border-radius:50%;
+  background:var(--acc);color:#fff;font-size:12px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;
+}
+.ai-step-body{font-size:13.5px;color:var(--txt);line-height:1.55}
+.ai-step-body strong{color:var(--txt)}
+.ai-step-body em{color:var(--muted);font-style:normal}
 </style>
 </head>
 <body>
@@ -613,6 +627,7 @@ let step = -1;
 let ans = {};
 let copied = false;
 let editOpen = false;
+let aiOpen = null;
 
 const app = document.getElementById("app");
 const progressTrack = document.getElementById("progress-track");
@@ -728,6 +743,18 @@ function toggleEdit(){
   if (!rows || !btn) return;
   rows.className = "edit-rows" + (editOpen?" open":"");
   btn.className  = "edit-toggle" + (editOpen?" open":"");
+}
+
+function toggleAI(name){
+  aiOpen = aiOpen === name ? null : name;
+  ["chatgpt","claude","copilot"].forEach(id => {
+    const body = document.getElementById("ai-body-"+id);
+    const btn  = document.getElementById("ai-btn-"+id);
+    if (!body || !btn) return;
+    const open = aiOpen === id;
+    body.style.display = open ? "block" : "none";
+    btn.className = "edit-toggle" + (open ? " open" : "");
+  });
 }
 
 // ── Prompt live-update from edit textareas ───────────────────
@@ -880,18 +907,66 @@ function render(){
       });
     });
 
+    const aiGuide = [
+      {
+        id: "chatgpt",
+        label: "ChatGPT",
+        steps: [
+          { n:1, title:"Kopiera prompt", body:'Klicka på <strong>Kopiera prompt</strong>-knappen ovan.' },
+          { n:2, title:"Öppna ChatGPT", body:'Gå till chatgpt.com och starta en ny chatt.' },
+          { n:3, title:"Klistra in och skicka", body:'Klistra in prompten som ditt <strong>allra första meddelande</strong> i chatten och skicka — ChatGPT anpassar sig direkt.' },
+          { n:4, title:"Spara för alla chattar (valfritt)", body:'Klicka på ditt namn (nere till vänster) → <strong>Anpassa ChatGPT</strong> (Customize ChatGPT) → klistra in under <em>"What would you like ChatGPT to know about you?"</em> → Spara. Gäller sedan automatiskt i varje ny chatt.' }
+        ]
+      },
+      {
+        id: "claude",
+        label: "Claude",
+        steps: [
+          { n:1, title:"Kopiera prompt", body:'Klicka på <strong>Kopiera prompt</strong>-knappen ovan.' },
+          { n:2, title:"Öppna Claude", body:'Gå till claude.ai och starta en ny chatt.' },
+          { n:3, title:"Klistra in som första meddelande", body:'Klistra in prompten som ditt <strong>allra första meddelande</strong> — Claude anpassar sig direkt.' },
+          { n:4, title:"Spara permanent (valfritt)", body:'Klicka på ditt namn → <strong>Inställningar</strong> (Settings) → <strong>Användarpreferenser</strong> (User preferences) → klistra in under <em>"What personal preferences would you like Claude to consider?"</em> → Spara. Gäller sedan automatiskt i varje ny chatt.' }
+        ]
+      },
+      {
+        id: "copilot",
+        label: "Copilot",
+        steps: [
+          { n:1, title:"Kopiera prompt", body:'Klicka på <strong>Kopiera prompt</strong>-knappen ovan.' },
+          { n:2, title:"Öppna Copilot", body:'Gå till copilot.microsoft.com eller öppna Copilot-appen.' },
+          { n:3, title:"Öppna inställningar", body:'Klicka på <strong>...</strong> (menyn uppe till höger) → <strong>Inställningar</strong> (Settings) → <strong>Anpassning</strong> (Personalisation).' },
+          { n:4, title:"Lägg till instruktioner", body:'Klicka på <strong>Anpassade instruktioner</strong> (Custom instructions) → <strong>Redigera</strong> (Edit) → klistra in prompten → Spara. Copilot följer nu dina preferenser automatiskt.' }
+        ]
+      }
+    ];
+
+    const aiAccordionHtml = aiGuide.map(ai => {
+      const stepsHtml = ai.steps.map(s =>
+        `<div class="ai-step">
+          <div class="ai-step-n">${s.n}</div>
+          <div class="ai-step-body"><strong>${s.title}</strong><br>${s.body}</div>
+        </div>`
+      ).join("");
+      const isOpen = aiOpen === ai.id;
+      return `
+        <div style="margin-top:8px">
+          <button class="edit-toggle${isOpen?" open":""}" id="ai-btn-${ai.id}" onclick="toggleAI('${ai.id}')">
+            <span>${ai.label}</span>
+            <span class="arrow">▾</span>
+          </button>
+          <div id="ai-body-${ai.id}" style="display:${isOpen?"block":"none"};padding:10px 4px 4px">
+            ${stepsHtml}
+          </div>
+        </div>`;
+    }).join("");
+
     html = `
     <div class="fade" style="padding-top:52px">
       <div class="badge" style="display:inline-flex;align-items:center;gap:6px">✓ Profil klar</div>
       <h2 style="font-size:clamp(22px,4vw,30px);font-weight:800;margin-bottom:10px;letter-spacing:-.02em">
         Din personaliseringsprompt är klar.
       </h2>
-      <p style="color:var(--muted);font-size:14px;margin-bottom:22px;line-height:1.65">
-        Kopiera prompten nedan och klistra in den i början av valfri AI-konversation. I Claude kan du också spara den under <strong style="color:var(--txt)">Inställningar → Användarpreferenser</strong> så att den används automatiskt i alla chattar.
-      </p>
-      <div class="info-box">
-        <strong>Så använder du den var som helst:</strong> Klistra in detta som ditt allra första meddelande i en ny chatt, eller lägg till den som systemprompt via API. Funkar med Claude, ChatGPT, Gemini, Mistral och andra.
-      </div>
+
       <div class="pbox" id="pbox">${esc(promptText)}</div>
       <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
         <button class="cpbtn${copied?" ok":""}" id="cp-btn" onclick="copyPrompt()">${copied?"✓ Kopierad!":"Kopiera prompt"}</button>
@@ -899,8 +974,13 @@ function render(){
       </div>
 
       <div class="edit-section">
+        <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;padding:0 2px">Så klistrar du in den</div>
+        ${aiAccordionHtml}
+      </div>
+
+      <div class="edit-section">
         <button class="edit-toggle" id="edit-toggle" onclick="toggleEdit()">
-          <span>Granska & redigera svar</span>
+          <span>Granska &amp; redigera svar</span>
           <span class="arrow">▾</span>
         </button>
         <div class="edit-rows${editOpen?" open":""}" id="edit-rows">
